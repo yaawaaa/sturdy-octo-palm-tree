@@ -88,41 +88,25 @@ document.addEventListener("DOMContentLoaded", () => {
       const listItem = document.createElement("div");
       listItem.textContent = `${index + 1}. ${item.foodItem} - Expiration: ${item.expirationDate}`;
       content.appendChild(listItem);
-
-// ✅ Export to Excel with proper capitalization and category
-document.getElementById("downloadButton").addEventListener("click", () => {
-  if (writtenData.length === 0) {
-    log("❌ No data to export");
-    return;
+    });
   }
 
-  // Format and capitalize data
-  const formattedData = writtenData.map((item) => ({
-    FoodItem: capitalizeWords(item.foodItem),
-    ExpirationDate: formatDate(item.expirationDate),
-    Category: capitalizeWords(item.category || "Uncategorized"), // Handle empty category
-  }));
+  // ✅ Export to Excel
+  document.getElementById("downloadButton").addEventListener("click", () => {
+    if (writtenData.length === 0) {
+      log("❌ No data to export");
+      return;
+    }
 
-  const ws = XLSX.utils.json_to_sheet(formattedData);
-  const wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, ws, "Written Data");
+    try {
+      const ws = XLSX.utils.json_to_sheet(writtenData);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, "Written Data");
 
-  XLSX.writeFile(wb, "written_data.xlsx");
-  log("> ✅ Excel file generated and downloaded");
-});
-
-// ✅ Capitalize first letter of each word
-function capitalizeWords(str) {
-  return str.replace(/\b\w/g, (char) => char.toUpperCase());
-}
-
-// ✅ Format expiration date to a readable format
-function formatDate(dateString) {
-  const date = new Date(dateString);
-  if (isNaN(date)) return dateString;
-  return date.toLocaleDateString("en-US", {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
+      XLSX.writeFile(wb, "written_data.xlsx");
+      log("> ✅ Excel file generated and downloaded");
+    } catch (error) {
+      log("❌ Excel export failed: " + error);
+    }
   });
-}
+});
