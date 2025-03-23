@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <title>NFC Scanner</title>
+</head>
+<body>
+
+  <h1>NFC Food Logger</h1>
+
+  <!-- ✅ New Input Fields -->
+  <div>
+    <label for="foodItem">Food Item:</label>
+    <input type="text" id="foodItem" placeholder="Enter food item" />
+  </div>
+  <div>
+    <label for="expirationDate">Expiration Date:</label>
+    <input type="date" id="expirationDate" />
+  </div>
+
+  <!-- ✅ Buttons -->
+  <button id="scanButton">Scan</button>
+  <button id="writeButton">Write</button>
+  <button id="downloadButton">Export to Excel</button>
+
+  <!-- ✅ Output Section -->
+  <h3>Live Output</h3>
+  <div id="output" class="output">
+    <div id="content"></div>
+    <pre id="log"></pre>
+  </div>
+
+  <!-- ✅ JavaScript File -->
+  <script src="app.js"></script>
+</body>
+</html>
