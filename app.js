@@ -91,22 +91,40 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // ✅ Export to Excel
-  document.getElementById("downloadButton").addEventListener("click", () => {
-    if (writtenData.length === 0) {
-      log("❌ No data to export");
-      return;
-    }
+// ✅ Export to Excel with proper capitalization and category
+document.getElementById("downloadButton").addEventListener("click", () => {
+  if (writtenData.length === 0) {
+    log("❌ No data to export");
+    return;
+  }
 
-    try {
-      const ws = XLSX.utils.json_to_sheet(writtenData);
-      const wb = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(wb, ws, "Written Data");
+  // Format and capitalize data
+  const formattedData = writtenData.map((item) => ({
+    FoodItem: capitalizeWords(item.foodItem),
+    ExpirationDate: formatDate(item.expirationDate),
+    Category: capitalizeWords(item.category || "Uncategorized"), // Handle empty category
+  }));
 
-      XLSX.writeFile(wb, "written_data.xlsx");
-      log("> ✅ Excel file generated and downloaded");
-    } catch (error) {
-      log("❌ Excel export failed: " + error);
-    }
-  });
+  const ws = XLSX.utils.json_to_sheet(formattedData);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, "Written Data");
+
+  XLSX.writeFile(wb, "written_data.xlsx");
+  log("> ✅ Excel file generated and downloaded");
 });
+
+// ✅ Capitalize first letter of each word
+function capitalizeWords(str) {
+  return str.replace(/\b\w/g, (char) => char.toUpperCase());
+}
+
+// ✅ Format expiration date to a readable format
+function formatDate(dateString) {
+  const date = new Date(dateString);
+  if (isNaN(date)) return dateString;
+  return date.toLocaleDateString("en-US", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  });
+}
