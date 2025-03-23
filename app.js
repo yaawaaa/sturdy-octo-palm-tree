@@ -54,7 +54,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const expirationDate = document.getElementById("expirationDate").value;
 
     if (!foodItem || !expirationDate) {
-      log("Please enter both a food item and expiration date.");
+      log("❌ Please enter both a food item and expiration date.");
       return;
     }
 
@@ -64,35 +64,42 @@ document.addEventListener("DOMContentLoaded", () => {
     try {
       await ndef.write(message);
       log(`✅ Successfully written to NFC tag: ${message}`);
+
+      // ✅ Save the written data
+      writtenData.push({
+        foodItem,
+        expirationDate,
+      });
+      displayData(); // Update UI
     } catch (error) {
       log("❌ Write failed: " + error);
     }
   });
 
-  // ✅ Display scanned data
+  // ✅ Display written data
   function displayData() {
     const content = document.querySelector("#content");
     content.innerHTML = "";
 
-    scannedData.forEach((item, index) => {
+    writtenData.forEach((item, index) => {
       const listItem = document.createElement("div");
-      listItem.textContent = `${index + 1}. ${item.serialNumber} - ${item.data} (${item.timestamp})`;
+      listItem.textContent = `${index + 1}. ${item.foodItem} - Expiration: ${item.expirationDate}`;
       content.appendChild(listItem);
     });
   }
 
   // ✅ Export to Excel
   document.getElementById("downloadButton").addEventListener("click", () => {
-    if (scannedData.length === 0) {
-      log("No data to export");
+    if (writtenData.length === 0) {
+      log("❌ No data to export");
       return;
     }
 
-    const ws = XLSX.utils.json_to_sheet(scannedData);
+    const ws = XLSX.utils.json_to_sheet(writtenData);
     const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "Scanned Data");
+    XLSX.utils.book_append_sheet(wb, ws, "Written Data");
 
-    XLSX.writeFile(wb, "scanned_data.xlsx");
-    log("> Excel file generated and downloaded");
+    XLSX.writeFile(wb, "written_data.xlsx");
+    log("> ✅ Excel file generated and downloaded");
   });
 });
