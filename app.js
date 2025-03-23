@@ -4,6 +4,7 @@ document.addEventListener("DOMContentLoaded", () => {
   };
 
   const scannedData = [];
+  const writtenData = [];
   const ndef = new NDEFReader();
 
   // ✅ Start Scan
@@ -62,6 +63,8 @@ document.addEventListener("DOMContentLoaded", () => {
     log(`> Attempting to write: ${message}`);
 
     try {
+      // ✅ Create a new NDEF instance each time
+      const ndef = new NDEFReader();
       await ndef.write(message);
       log(`✅ Successfully written to NFC tag: ${message}`);
 
@@ -95,11 +98,15 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
-    const ws = XLSX.utils.json_to_sheet(writtenData);
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "Written Data");
+    try {
+      const ws = XLSX.utils.json_to_sheet(writtenData);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, "Written Data");
 
-    XLSX.writeFile(wb, "written_data.xlsx");
-    log("> ✅ Excel file generated and downloaded");
+      XLSX.writeFile(wb, "written_data.xlsx");
+      log("> ✅ Excel file generated and downloaded");
+    } catch (error) {
+      log("❌ Excel export failed: " + error);
+    }
   });
 });
