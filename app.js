@@ -91,7 +91,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // ✅ Export to Excel
+  // ✅ Export to Excel (Properly formatted)
   document.getElementById("downloadButton").addEventListener("click", () => {
     if (writtenData.length === 0) {
       log("❌ No data to export");
@@ -99,7 +99,13 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     try {
-      const ws = XLSX.utils.json_to_sheet(writtenData);
+      // ✅ Format and capitalize data
+      const formattedData = writtenData.map((item) => ({
+        FoodItem: capitalizeWords(item.foodItem),
+        ExpirationDate: formatDate(item.expirationDate),
+      }));
+
+      const ws = XLSX.utils.json_to_sheet(formattedData);
       const wb = XLSX.utils.book_new();
       XLSX.utils.book_append_sheet(wb, ws, "Written Data");
 
@@ -109,4 +115,20 @@ document.addEventListener("DOMContentLoaded", () => {
       log("❌ Excel export failed: " + error);
     }
   });
+
+  // ✅ Capitalize Words
+  function capitalizeWords(str) {
+    return str.replace(/\b\w/g, (char) => char.toUpperCase());
+  }
+
+  // ✅ Format Date to "Month Day, Year"
+  function formatDate(dateString) {
+    const date = new Date(dateString);
+    if (isNaN(date)) return dateString;
+    return date.toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    });
+  }
 });
