@@ -7,13 +7,6 @@ document.addEventListener("DOMContentLoaded", () => {
   const writtenData = [];
   const ndef = new NDEFReader();
 
-    // ✅ Request Notification Permission on Page Load
-  if (Notification.permission !== "granted" && Notification.permission !== "denied") {
-    Notification.requestPermission().then(permission => {
-      console.log("Notification permission:", permission);
-    }
-  });
-
   // ✅ Start Scan
   document.getElementById("scanButton").addEventListener("click", async () => {
     log("User clicked scan button");
@@ -56,6 +49,13 @@ document.addEventListener("DOMContentLoaded", () => {
     log("Argh! Cannot read data from the NFC tag. Try another one?");
   });
 
+  // ✅ Request Notification Permission on Page Load
+  if (Notification.permission !== "granted" && Notification.permission !== "denied") {
+    Notification.requestPermission().then(permission => {
+      console.log("Notification permission:", permission);
+    });
+  }
+
   // ✅ Write to NFC Tag
   document.getElementById("writeButton").addEventListener("click", async () => {
     const foodItem = document.getElementById("foodItem").value.trim();
@@ -70,7 +70,6 @@ document.addEventListener("DOMContentLoaded", () => {
     log(`> Attempting to write: ${message}`);
 
     try {
-      // ✅ Create a new NDEF instance each time
       const ndef = new NDEFReader();
       await ndef.write(message);
       log(`✅ Successfully written to NFC tag: ${message}`);
@@ -78,7 +77,7 @@ document.addEventListener("DOMContentLoaded", () => {
       // ✅ Save the written data
       writtenData.push({
         foodItem,
-        expirationDate,
+        expirationDate: new Date(expirationDate), // Convert to Date object
       });
       displayData(); // Update UI
     } catch (error) {
@@ -93,44 +92,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
     writtenData.forEach((item, index) => {
       const listItem = document.createElement("div");
-      listItem.textContent = `${index + 1}. ${item.foodItem} - Expiration: ${item.expirationDate}`;
+      listItem.textContent = `${index + 1}. ${item.foodItem} - Expiration: ${item.expirationDate.toDateString()}`;
       content.appendChild(listItem);
     });
   }
-    
-  // ✅ Save to array for notification tracking
-      writtenData.push({
-        foodItem,
-        expirationDate: new Date(expirationDate)
-      });
-      displayData();
-    } catch (error) {
-      log("❌ Write failed: " + error);
-    }
-  });
-
-  // ✅ Notify if close to expiration date (check every 10 seconds)
-  setInterval(() => {
-    const today = new Date();
-
-    writtenData.forEach((item) => {
-      const daysLeft = Math.ceil((item.expirationDate - today) / (1000 * 60 * 60 * 24));
-
-      // ✅ Notify if within 3 days of expiration
-      if (daysLeft <= 3 && daysLeft >= 0) {
-        notifyUser(`${item.foodItem} expires in ${daysLeft} day(s)!`);
-      }
-    });
-  }, 10000); // Check every 10 seconds
-
-  // ✅ Notification function
-  function notifyUser(message) {
-    if (Notification.permission === "granted") {
-      new Notification("⚠️ Expiration Alert", { body: message });
-      log(`🚨 Notification sent: ${message}`);
-    } else {
-      log("❌ Notification permission denied");
-    }
 
   // ✅ Export to Excel
   document.getElementById("downloadButton").addEventListener("click", () => {
@@ -139,15 +104,40 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
-    try {
-      const ws = XLSX.utils.json_to_sheet(writtenData);
-      const wb = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(wb, ws, "Written Data");
+    const ws = XLSX.utils.json_to_sheet(
+      writtenData.map(item => ({
+        "Food Item": item.foodItem,
+        "Expiration Date": item.expirationDate.toDateString(),
+      }))
+    );
 
-      XLSX.writeFile(wb, "written_data.xlsx");
-      log("> ✅ Excel file generated and downloaded");
-    } catch (error) {
-      log("❌ Excel export failed: " + error);
-    }
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Written Data");
+
+    XLSX.writeFile(wb, "written_data.xlsx");
+    log("> ✅ Excel file generated and downloaded");
   });
+
+  // ✅ Check for Expiring Items Every 10 Seconds
+  setInterval(() => {
+    const today = new Date();
+
+    writtenData.forEach((item) => {
+      const daysLeft = Math.ceil((item.expirationDate - today) / (1000 * 60 * 60 * 24));
+
+      if (daysLeft <= 3 && daysLeft >= 0) {
+        notifyUser(`${item.foodItem} expires in ${daysLeft} day(s)!`);
+      }
+    });
+  }, 10000); // Check every 10 seconds
+
+  // ✅ Notification Function
+  function notifyUser(message) {
+    if (Notification.permission === "granted") {
+      new Notification("⚠️ Expiration Alert", { body: message });
+      log(`🚨 Notification sent: ${message}`);
+    } else {
+      log("❌ Notification permission denied");
+    }
+  }
 });
