@@ -88,8 +88,6 @@ document.addEventListener("DOMContentLoaded", () => {
       const listItem = document.createElement("div");
       listItem.textContent = `${index + 1}. ${item.foodItem} - Expiration: ${item.expirationDate}`;
       content.appendChild(listItem);
-    });
-  }
 
 // ✅ Export to Excel with proper capitalization and category
 document.getElementById("downloadButton").addEventListener("click", () => {
