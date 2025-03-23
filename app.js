@@ -7,6 +7,13 @@ document.addEventListener("DOMContentLoaded", () => {
   const writtenData = [];
   const ndef = new NDEFReader();
 
+    // ✅ Request Notification Permission on Page Load
+  if (Notification.permission !== "granted" && Notification.permission !== "denied") {
+    Notification.requestPermission().then(permission => {
+      console.log("Notification permission:", permission);
+    }
+  });
+
   // ✅ Start Scan
   document.getElementById("scanButton").addEventListener("click", async () => {
     log("User clicked scan button");
@@ -90,6 +97,40 @@ document.addEventListener("DOMContentLoaded", () => {
       content.appendChild(listItem);
     });
   }
+    
+  // ✅ Save to array for notification tracking
+      writtenData.push({
+        foodItem,
+        expirationDate: new Date(expirationDate)
+      });
+      displayData();
+    } catch (error) {
+      log("❌ Write failed: " + error);
+    }
+  });
+
+  // ✅ Notify if close to expiration date (check every 10 seconds)
+  setInterval(() => {
+    const today = new Date();
+
+    writtenData.forEach((item) => {
+      const daysLeft = Math.ceil((item.expirationDate - today) / (1000 * 60 * 60 * 24));
+
+      // ✅ Notify if within 3 days of expiration
+      if (daysLeft <= 3 && daysLeft >= 0) {
+        notifyUser(`${item.foodItem} expires in ${daysLeft} day(s)!`);
+      }
+    });
+  }, 10000); // Check every 10 seconds
+
+  // ✅ Notification function
+  function notifyUser(message) {
+    if (Notification.permission === "granted") {
+      new Notification("⚠️ Expiration Alert", { body: message });
+      log(`🚨 Notification sent: ${message}`);
+    } else {
+      log("❌ Notification permission denied");
+    }
 
   // ✅ Export to Excel
   document.getElementById("downloadButton").addEventListener("click", () => {
