@@ -53,13 +53,15 @@ document.addEventListener("DOMContentLoaded", () => {
   document.getElementById("writeButton").addEventListener("click", async () => {
     const foodItem = document.getElementById("foodItem").value.trim();
     const expirationDate = document.getElementById("expirationDate").value;
+    const count = parseInt(document.getElementById("count").value.trim()) || 1; // ✅ Default count to 1
+    const grams = document.getElementById("grams").value.trim() || ""; // ✅ Allow blank grams
 
     if (!foodItem || !expirationDate) {
-      log("❌ Please enter both a food item and expiration date.");
+      log("❌ Please enter a valid food item and expiration date.");
       return;
     }
 
-    const message = `Food Item: ${foodItem}, Expiration Date: ${expirationDate}`;
+    const message = `Food Item: ${foodItem}, Expiration Date: ${expirationDate}, Count: ${count}, Grams: ${grams}`;
     log(`> Attempting to write: ${message}`);
 
     try {
@@ -72,6 +74,8 @@ document.addEventListener("DOMContentLoaded", () => {
       writtenData.push({
         foodItem,
         expirationDate,
+        count,
+        grams,
       });
       displayData(); // Update UI
     } catch (error) {
@@ -86,12 +90,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
     writtenData.forEach((item, index) => {
       const listItem = document.createElement("div");
-      listItem.textContent = `${index + 1}. ${item.foodItem} - Expiration: ${item.expirationDate}`;
+      listItem.textContent = `${index + 1}. ${item.foodItem} - Expiration: ${item.expirationDate} - Count: ${item.count} - Grams: ${item.grams || "N/A"}`;
       content.appendChild(listItem);
     });
   }
 
-  // ✅ Export to Excel (Properly formatted)
+  // ✅ Export to Excel (with Proper Headers + Capitalization)
   document.getElementById("downloadButton").addEventListener("click", () => {
     if (writtenData.length === 0) {
       log("❌ No data to export");
@@ -101,8 +105,10 @@ document.addEventListener("DOMContentLoaded", () => {
     try {
       // ✅ Format and capitalize data
       const formattedData = writtenData.map((item) => ({
-        FoodItem: capitalizeWords(item.foodItem),
-        ExpirationDate: formatDate(item.expirationDate),
+        "Food Item": capitalizeWords(item.foodItem),
+        "Expiration Date": formatDate(item.expirationDate),
+        "Count": item.count,
+        "Grams": item.grams || "N/A",
       }));
 
       const ws = XLSX.utils.json_to_sheet(formattedData);
